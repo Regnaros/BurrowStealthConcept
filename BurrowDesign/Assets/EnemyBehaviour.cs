@@ -7,9 +7,7 @@ using UnityEngine.Accessibility;
 public class EnemyBehaviour : MonoBehaviour
 {
     public float turn_speed = 6.0f;
-    public GameObject PositionA;
-    public GameObject PositionB;
-    public List<GameObject> path = new List<GameObject>();
+    [SerializeField]public List<GameObject> path = new List<GameObject>();
     public int nextDest = 0;
     public int looparound;
     public bool chase = false;
@@ -24,8 +22,6 @@ public class EnemyBehaviour : MonoBehaviour
 
     void Start()
     {
-        path.Add(PositionA);
-        path.Add(PositionB);
         looparound = path.Count;
     }
 
