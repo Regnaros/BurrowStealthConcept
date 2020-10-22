@@ -18,6 +18,8 @@ public class Movement : MonoBehaviour
     public bool burrowed;
     public Vector3 burrow;
     public GameObject capsule;
+    public bool digHim;
+    GameObject enemy;
 
     void Start()
     {
@@ -59,18 +61,64 @@ public class Movement : MonoBehaviour
         }
         else
         {
-            Vector3 newPosition = capsule.transform.position;
-            newPosition.y = 1.03f;
-            capsule.transform.position = newPosition;
+            if (digHim)
+            {
+                Vector3 newPosition = enemy.transform.position;
+                newPosition.y = -0.17f;
+                enemy.transform.position = newPosition;
+                enemy.GetComponent<EnemyBehaviour>().enabled = false;
+                enemy.GetComponent<CapsuleCollider>().enabled = false;
+
+                newPosition = capsule.transform.position;
+                newPosition.y = 1.03f;
+                capsule.transform.position = newPosition;
+                digHim = false;
+    
+
+                StartCoroutine(GettingOut(enemy));
+        
+                
+            }
+            else
+            {
+                Vector3 newPosition = capsule.transform.position;
+                newPosition.y = 1.03f;
+                capsule.transform.position = newPosition;
+            }
         }
+
+
+    }
+
+    IEnumerator GettingOut(GameObject enemy)
+    {
+        yield return new WaitForSeconds(5);
+        Vector3 newPosition = enemy.transform.position;
+        newPosition.y = 1.03f;
+        enemy.transform.position = newPosition;
+        enemy.GetComponent<EnemyBehaviour>().enabled = true;
+        enemy.GetComponent<CapsuleCollider>().enabled = true;
 
     }
 
     void OnTriggerEnter(Collider other)
     {
+        if (other.tag == "Enemy" && !burrowed)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+        if (other.tag == "Enemy" && burrowed)
+        {
+            enemy = other.gameObject;
+            digHim = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
         if (other.tag == "Enemy")
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            digHim = false;
         }
     }
     

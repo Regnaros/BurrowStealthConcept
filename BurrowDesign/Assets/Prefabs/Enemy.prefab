@@ -232,14 +232,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turn_speed: 6
-  PositionA: {fileID: 0}
-  PositionB: {fileID: 0}
   path: []
   nextDest: 0
   looparound: 0
   chase: 0
   speed: 6
   player: {fileID: 0}
+  turnSmoothTime: 1
+  turnSmoothVelocity: 0
 --- !u!1001 &5420445742889622017
 PrefabInstance:
   m_ObjectHideFlags: 0
