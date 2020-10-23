@@ -20,7 +20,6 @@ public class ButtonScript : MonoBehaviour
     {
         if (other.tag == "Player")
         {
-            Debug.Log(door.active);
             if (door.active)
             {
                 door.SetActive(false);

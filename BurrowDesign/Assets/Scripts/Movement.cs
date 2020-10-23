@@ -8,13 +8,12 @@ using UnityEngine.SceneManagement;
 public class Movement : MonoBehaviour
 {
     public CharacterController controller;
-    public Transform cam;
+    public Camera cam;
     public float speed = 6f;
     public float turnSmoothTime = 0.1f;
     public float turnSmoothVelocity;
     // Start is called before the first frame update
     private Vector3 movementInput;
-    public Transform transf;
     public bool burrowed = false;
     public Vector3 burrow;
     public GameObject capsule;
@@ -23,6 +22,7 @@ public class Movement : MonoBehaviour
     float dist = 10;
     Vector3 directi = new Vector3(0, -1, 0);
     bool canBurrow;
+    private Vector3 movementVector; 
 
     void Start()
     {
@@ -40,17 +40,22 @@ public class Movement : MonoBehaviour
     void Update()
     {
 
-        if (movementInput.magnitude >= 0.1f)
+        if (movementInput.magnitude > 0.1f)
         {
-
-            float targetAngle = Mathf.Atan2(movementInput.x, movementInput.z) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
-            Mathf.SmoothDamp(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            cam.position = Vector3.Lerp(cam.position, transform.position, Time.deltaTime * 20.0f);
-            controller.Move(movementInput * speed * Time.deltaTime);
-
-            
+            Vector3 relativeInput = GetMovementRelativeToCamera();
+            //rotate player to face same direction as input-direction
+            float angleDelta = Vector3.SignedAngle(this.transform.forward, relativeInput, Vector3.up);
+            angleDelta *= Mathf.Min(Time.deltaTime * speed, 1f); //values >1 will cause oversteer
+            transform.Rotate(0f, angleDelta, 0f);
+            //apply relative input with movespeed to the movement vector
+            movementVector.x = relativeInput.x * speed;
+            movementVector.z = relativeInput.z * speed;
         }
+        else //if no input, reset xz-movement; 
+            movementVector.x = movementVector.z = 0;
+        //use character-controller to move player (takes care of slopes & other edge-cases)
+        controller.Move(movementVector * Time.deltaTime);
+    
     }
 
     void FixedUpdate()
@@ -115,27 +120,29 @@ public class Movement : MonoBehaviour
 
     }
 
-    // void OnJump()
-    // {
-    //     RaycastHit hit;
-    //     Vector3 direction = transform.position;
-    //     direction.y += 50;
-    //     float reach = 50;
-    //     Debug.Log("Hej");
-    //     if(Physics.Linecast(transform.position, direction, out hit, layerMask: Physics.DefaultRaycastLayers , queryTriggerInteraction: QueryTriggerInteraction.Ignore))
-    //     {
-    //         Debug.Log(hit.collider.gameObject.tag);
-    //         // if(hit.collider.gameObject.tag == "Dirt")
-    //         // {
-    //         //     Vector3 rotation = transform.eulerAngles;
-    //         //     rotation.x += 180;
-    //         //     transform.rotation = Quaternion.Euler(rotation);
-    //         //     Vector3 newPosition = transform.position;
-    //         //     newPosition.y = 12.3f;
-    //         //     transform.position = newPosition;
-    //         // }
-    //     }
-    // }
+    void OnJump()
+    {
+        RaycastHit hit;
+        Vector3 startdirection = transform.position;
+        startdirection.y += 4;
+        Vector3 direction = transform.position;
+        direction.y += 50;
+        float reach = 50;
+        Debug.Log("Hej");
+        if(Physics.Linecast(startdirection, direction, out hit, layerMask: Physics.DefaultRaycastLayers , queryTriggerInteraction: QueryTriggerInteraction.Ignore))
+        {
+            Debug.Log(hit.collider.gameObject.tag);
+            if(hit.collider.gameObject.tag == "Dirt")
+            {
+                Vector3 rotation = transform.eulerAngles;
+                rotation.x += 180;
+                transform.rotation = Quaternion.Euler(rotation);
+                Vector3 newPosition = transform.position;
+                newPosition.y = 12.3f;
+                transform.position = newPosition;
+            }
+        }
+    }
 
     IEnumerator GettingOut(GameObject enemy)
     {
@@ -168,5 +175,16 @@ public class Movement : MonoBehaviour
             digHim = false;
         }
     }
+
+    private Vector3 GetMovementRelativeToCamera()
+    {
+        //Player moves in the xz-plane based on camera forward, so simply project the camera forward.
+        Vector3 cameraDirectionProjected = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
+        //actual movement is movement relative to camera forward, but input is relative to Vector3.forward, so we must first rotate the input vector
+        float angleToRotate = Vector3.SignedAngle(Vector3.forward, cameraDirectionProjected, Vector3.up);
+        Vector3 rotatedInput = Quaternion.AngleAxis(angleToRotate, Vector3.up) * movementInput;
+        return rotatedInput;
+    }
     
 }
+
