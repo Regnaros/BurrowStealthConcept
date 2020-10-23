@@ -15,11 +15,14 @@ public class Movement : MonoBehaviour
     // Start is called before the first frame update
     private Vector3 movementInput;
     public Transform transf;
-    public bool burrowed;
+    public bool burrowed = false;
     public Vector3 burrow;
     public GameObject capsule;
     public bool digHim;
     GameObject enemy;
+    float dist = 10;
+    Vector3 directi = new Vector3(0, -1, 0);
+    bool canBurrow;
 
     void Start()
     {
@@ -50,45 +53,89 @@ public class Movement : MonoBehaviour
         }
     }
 
+    void FixedUpdate()
+    {
+        RaycastHit hit;
+        if(Physics.Raycast(transform.position, directi, out hit, dist, Physics.DefaultRaycastLayers)){
+           if (hit.collider.gameObject.tag == "Steel")
+           {
+               canBurrow = false;
+           }
+           else
+           {
+               canBurrow = true;
+           }
+        }
+        else{
+            canBurrow = true;
+           
+        }
+    }
+
     public void OnBurrow()
     {
-        burrowed = !burrowed;
-        if (burrowed)
+        if (canBurrow)
         {
-            Vector3 newPosition = capsule.transform.position;
-            newPosition.y = -0.17f;
-            capsule.transform.position = newPosition;
-        }
-        else
-        {
-            if (digHim)
+            burrowed = !burrowed;
+            if (burrowed)
             {
-                Vector3 newPosition = enemy.transform.position;
-                newPosition.y = -0.17f;
-                enemy.transform.position = newPosition;
-                enemy.GetComponent<EnemyBehaviour>().enabled = false;
-                enemy.GetComponent<CapsuleCollider>().enabled = false;
-
-                newPosition = capsule.transform.position;
-                newPosition.y = 1.03f;
-                capsule.transform.position = newPosition;
-                digHim = false;
-    
-
-                StartCoroutine(GettingOut(enemy));
-        
-                
+                Vector3 newPosition = transform.position;
+                newPosition.y = -1.30f;
+                transform.position = newPosition;
             }
             else
             {
-                Vector3 newPosition = capsule.transform.position;
-                newPosition.y = 1.03f;
-                capsule.transform.position = newPosition;
+                if (digHim)
+                {
+                    Vector3 newPosition = enemy.transform.position;
+                    newPosition.y = -0.17f;
+                    enemy.transform.position = newPosition;
+                    enemy.GetComponent<EnemyBehaviour>().enabled = false;
+                    enemy.GetComponent<CapsuleCollider>().enabled = false;
+
+                    newPosition = transform.position;
+                    newPosition.y = 0.20f;
+                    transform.position = newPosition;
+                    digHim = false;
+    
+
+                    StartCoroutine(GettingOut(enemy));
+        
+                
+                }
+                else
+                {
+                    Vector3 newPosition = transform.position;
+                    newPosition.y = 0.20f;
+                    transform.position = newPosition;
+                }   
             }
         }
 
 
     }
+
+    // void OnJump()
+    // {
+    //     RaycastHit hit;
+    //     Vector3 direction = transform.position;
+    //     direction.y += 50;
+    //     float reach = 50;
+    //     Debug.Log("Hej");
+    //     if(Physics.Linecast(transform.position, direction, out hit, layerMask: Physics.DefaultRaycastLayers , queryTriggerInteraction: QueryTriggerInteraction.Ignore))
+    //     {
+    //         Debug.Log(hit.collider.gameObject.tag);
+    //         // if(hit.collider.gameObject.tag == "Dirt")
+    //         // {
+    //         //     Vector3 rotation = transform.eulerAngles;
+    //         //     rotation.x += 180;
+    //         //     transform.rotation = Quaternion.Euler(rotation);
+    //         //     Vector3 newPosition = transform.position;
+    //         //     newPosition.y = 12.3f;
+    //         //     transform.position = newPosition;
+    //         // }
+    //     }
+    // }
 
     IEnumerator GettingOut(GameObject enemy)
     {

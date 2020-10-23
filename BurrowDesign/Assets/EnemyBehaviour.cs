@@ -41,19 +41,12 @@ public class EnemyBehaviour : MonoBehaviour
                 if (Physics.Linecast(this.transform.position, player.transform.position))
                 {
                     rotateTowards(path[nextDest].transform.position);
-                    moveIt(step);
-                    
-                    
-                    
-                    
-                    
+                    moveIt(step);       
                 }
                 else
-                {
-                    
+                {         
                     rotateTowards(player.transform.position);
-                    transform.position = Vector3.MoveTowards(transform.position, player.transform.position, step); 
-                    
+                    transform.position = Vector3.MoveTowards(transform.position, player.transform.position, step);                   
                 }
                 
             }
